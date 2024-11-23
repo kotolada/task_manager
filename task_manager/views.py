@@ -59,16 +59,41 @@ def add_task(request):
         form = AddTaskForm()
     return render(request, 'add_task.html', {'form':form})
 
-def update_task(request):
-    pass
+def edit_task(request, pk):
+    if request.user.is_authenticated:
+        current_task = Task.objects.get(id=pk)
+        # Add instance to propagate the form with
+        # the existing information.
+        form = AddTaskForm(request.POST or None, instance=current_task)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Task has been updated.')
+            return redirect('task_list')
+        return render(request, "edit_task.html", {'form': form})
+    else:
+        messages.error('You must be logged in to do that.')
+        return redirect('login')
 
-def delete_task(request):
-    pass
-
-def task_list(request):
-    pass
+def delete_task(request, pk):
+    if request.user.is_authenticated:
+        delete_it = Task.objects.get(id=pk)
+        delete_it.delete()
+        messages.success(request, "Task has been deleted.")
+        return redirect('task_list')
+    else:
+        messages.error('You must be logged in to do that.')
+        return redirect('login')
 
 @login_required
-def task_list(request):
-    tasks = Task.objects.all
-    return render(request, 'task_list.html')
+def task_list(request): 
+    if request.method == "POST":
+        task_id = request.POST.get('id')
+        task = Task.objects.get(id=task_id)
+        task.task_status = Task.Status.DONE  # Change status to Done
+        task.save()
+        tasks = Task.objects.filter(task_status=Task.Status.IN_PROGRESS)
+        messages.success(request, "Task marked as Done!")
+        return redirect('task_list')
+    
+    tasks = Task.objects.filter(task_status=Task.Status.IN_PROGRESS)
+    return render(request, 'task_list.html', {'tasks': tasks})

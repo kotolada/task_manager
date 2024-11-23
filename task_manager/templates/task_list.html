@@ -2,20 +2,25 @@
 
 {% block content %}
 <h3>Your tasks</h3>
-
+<br/>
 <div class="row">
     {% if tasks %}
         {% for task in tasks %}
             <div class="col-sm-6 mb-3 mb-sm-0">
-            <div class="card">
-                <div class="card-body">
-                <h5 class="card-title">{{ task.task_name }}</h5>
-                <p class="card-text">{{ task.task_description }}</p>
-                <p class="card-text">{{ task.due_date }}</p>
-                <p class="card-text">{{ task.status }}</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
+                <div class="card">
+                    <div class="card-body">
+                    <h5 class="card-title">{{ task.task_name }}</h5>
+                    <p class="card-text">{{ task.task_description }}</p>
+                    <p class="card-text">Due Date: {{ task.due_date|date:"d/m/Y, H:i" }}</p>
+                    <br/>
+                    <form method="POST" action="{% url 'task_list' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="id" value="{{ task.id }}">
+                        <button type="submit" class="btn btn-success">Mark as Done</button>
+                        <a href="{% url 'edit_task' pk=task.id %}" class="btn btn-primary">Edit</a>
+                        <a href="{% url 'delete_task' pk=task.id %}" class="btn btn-danger">Delete</a>
+                    </div>
                 </div>
-            </div>
             </div>
         {% endfor %}
     {% endif %}

@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 class Task(models.Model):
 
     class Status(models.TextChoices):
-        NEW = 'NEW', _('New')
         IN_PROGRESS = 'IN_PROGRESS', _('In Progress')
         DONE = 'DONE', _('Done')
 
@@ -15,7 +14,7 @@ class Task(models.Model):
     task_status = models.CharField(
         max_length=20,
         choices=Status,
-        default=Status.NEW
+        default=Status.IN_PROGRESS
         )
     
     def __str__(self):
