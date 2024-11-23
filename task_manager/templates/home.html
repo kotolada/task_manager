@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+
+<h3>Welcome {{ user.username }}!</h3>
+<br/>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Choose action</h5>
+          <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+          <a href="{% url 'task_list' %}" class="btn btn-dark">Task List</a>
+          <a href="{% url 'add_task' %}" class="btn btn-dark">Add Task</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Card title</h5>
+          <p class="card-text">This is a short card.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Card title</h5>
+          <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content.</p>
+        </div>
+      </div>
+    </div>
+
+{% else %}
+
+<div class="col-md-6 offset-md-3">
+    <h4>Welcome Guest!</h4>
+    <br/>
+    <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Login Required</h5>
+          <p class="card-text">Please register to create an account or log in to see your task dashboard.</p>
+          <a href="{% url 'register' %}" class="btn btn-dark">Register</a>
+          <a href="{% url 'login' %}" class="btn btn-dark">Login</a>
+        </div>
+      </div>
+</div>
+
+{% endif %}
+
+{% endblock %}

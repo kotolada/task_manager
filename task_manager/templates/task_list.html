@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>Your tasks</h3>
+
+<div class="row">
+    {% if tasks %}
+        {% for task in tasks %}
+            <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="card">
+                <div class="card-body">
+                <h5 class="card-title">{{ task.task_name }}</h5>
+                <p class="card-text">{{ task.task_description }}</p>
+                <p class="card-text">{{ task.due_date }}</p>
+                <p class="card-text">{{ task.status }}</p>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+                </div>
+            </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+
+<div class="col-md-6 offset-md-3">
+    <h1>Add Task</h1>
+    <br/>
+    <form method="POST" action="">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% for field in form %}
+        <div class="mb-3">
+            <div class="form-floating mb-3">
+                {{ field }}
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% if field.errors %}
+                <div class="text-danger">
+                    {% for error in field.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+        <br/>
+        <button type="submit" class="btn btn-dark">Add Task</button>
+        <a href="{% url 'home' %}" class="btn btn-dark">Back</a>
+    </form>
+</div>
+
+{% else %}
+
+<div class="col-md-6 offset-md-3">
+    <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Login Required</h5>
+          <p class="card-text">You must be logged in to add a task.</p>
+          <a href="{% url 'login' %}" class="btn btn-dark">Login</a>
+        </div>
+      </div>
+</div>
+
+{% endif %}
+{% endblock %}
