@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>Your Completed Tasks</h3>
+<br/>
+<a href="{% url 'task_list' %}" class="btn btn-dark">Back</a>
+<br/>
+<br/>
+<div class="row">
+    {% if tasks %}
+        {% for task in tasks %}
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ task.task_name }}</h5>
+                        <p class="card-text">{{ task.task_description }}</p>
+                        <p class="card-text">{{ task.due_date|date:"d/m/Y, H:i"  }}</p>
+                        <form method="POST" action="{% url 'completed_tasks' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ task.id }}">
+                            <button type="submit" class="btn btn-success">Move Back to Active</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

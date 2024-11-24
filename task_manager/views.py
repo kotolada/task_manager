@@ -4,10 +4,13 @@ from django.contrib import messages
 from .forms import RegisterUserForm, AddTaskForm
 from .models import Task
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
 
 def home(request):
-    return render(request, 'home.html')
+    total_active = Task.objects.filter(user=request.user, task_status=Task.Status.IN_PROGRESS).count()
+    total_completed = Task.objects.filter(user=request.user, task_status=Task.Status.DONE).count()
+    return render(request, 'home.html', {'total_active': total_active, 'total_completed': total_completed})
     
     
     
@@ -52,7 +55,9 @@ def add_task(request):
     if request.method == "POST":
         form = AddTaskForm(request.POST)
         if form.is_valid():
-            form.save()
+            task = form.save(commit=False)
+            task.user = request.user
+            task.save()
             messages.success(request, "Task added successfully!")
             return redirect('task_list')
     else:
@@ -88,12 +93,33 @@ def delete_task(request, pk):
 def task_list(request): 
     if request.method == "POST":
         task_id = request.POST.get('id')
-        task = Task.objects.get(id=task_id)
-        task.task_status = Task.Status.DONE  # Change status to Done
-        task.save()
-        tasks = Task.objects.filter(task_status=Task.Status.IN_PROGRESS)
-        messages.success(request, "Task marked as Done!")
+        try:
+            task = Task.objects.get(id=task_id, user=request.user)  # Filter by user
+            task.task_status = Task.Status.DONE  # Mark as Done
+            task.save()
+            messages.success(request, f"Task '{task.task_name}' marked as Done!")
+        except Task.DoesNotExist:
+            messages.error(request, "Task not found or you don't have permission to update it.")
         return redirect('task_list')
     
-    tasks = Task.objects.filter(task_status=Task.Status.IN_PROGRESS)
-    return render(request, 'task_list.html', {'tasks': tasks})
+    now = timezone.now()        
+    tasks = Task.objects.filter(user=request.user, task_status=Task.Status.IN_PROGRESS)
+    tasks = tasks.order_by('due_date')
+    return render(request, 'task_list.html', {'tasks': tasks, 'now': now})
+
+@login_required
+def completed_tasks(request):
+    if request.method == "POST":
+        task_id = request.POST.get('id')
+        try:
+            task = Task.objects.get(id=task_id, user=request.user)  # Filter by user
+            task.task_status = Task.Status.IN_PROGRESS  # Mark as Done
+            task.save()
+            messages.success(request, f"Task '{task.task_name}' moved back to the active list!")
+        except Task.DoesNotExist:
+            messages.error(request, "Task not found or you don't have permission to update it.")
+        return redirect('task_list')
+    
+    tasks = Task.objects.filter(user=request.user, task_status=Task.Status.DONE)
+    tasks = tasks.order_by('-due_date')
+    return render(request, 'completed_tasks.html', {'tasks': tasks})

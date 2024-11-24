@@ -1,27 +1,43 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h3>Your tasks</h3>
+<h3>Your Active Tasks</h3>
+<br/>
+<a href="{% url 'add_task' %}" class="btn btn-dark">Add Task</a>
+<a href="{% url 'completed_tasks' %}" class="btn btn-dark">View Completed Tasks</a>
+<a href="{% url 'home' %}" class="btn btn-dark">Back</a>
+<br/>
 <br/>
 <div class="row">
     {% if tasks %}
         {% for task in tasks %}
-            <div class="col-sm-6 mb-3 mb-sm-0">
-                <div class="card">
-                    <div class="card-body">
+        <div class="col-sm-15 mb-3 mb-sm-0">
+            <div class="card">
+                <div class="card-body">
                     <h5 class="card-title">{{ task.task_name }}</h5>
                     <p class="card-text">{{ task.task_description }}</p>
-                    <p class="card-text">Due Date: {{ task.due_date|date:"d/m/Y, H:i" }}</p>
-                    <br/>
-                    <form method="POST" action="{% url 'task_list' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="id" value="{{ task.id }}">
-                        <button type="submit" class="btn btn-success">Mark as Done</button>
+                    <p class="card-text">
+                        Due Date: 
+                        <span {% if task.due_date and task.due_date|date:"U" < now|date:"U" %}style="color: red;"{% endif %}>
+                            {{ task.due_date|date:"d/m/Y, H:i" }}
+                        </span>
+                        {% if task.due_date and task.due_date|date:"U" < now|date:"U" %}
+                            <br/><b><span style="color: red;">Past Due!</span></b>
+                        {% endif %}
+                    </p>
+                    <div class="d-flex align-items-center gap-2">
+                        <form method="POST" action="{% url 'task_list' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ task.id }}">
+                            <button type="submit" class="btn btn-success">Mark as Done</button>
+                        </form>
                         <a href="{% url 'edit_task' pk=task.id %}" class="btn btn-primary">Edit</a>
                         <a href="{% url 'delete_task' pk=task.id %}" class="btn btn-danger">Delete</a>
                     </div>
                 </div>
             </div>
+        <br/>
+        </div>
         {% endfor %}
     {% endif %}
 

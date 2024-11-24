@@ -59,4 +59,4 @@ class AddTaskForm(forms.ModelForm):
 
     class Meta:
         model = Task
-        exclude = ('task_status',)
+        exclude = ('task_status', 'user',)

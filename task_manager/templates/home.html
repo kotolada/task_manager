@@ -10,19 +10,30 @@
     <div class="col">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="card-title">Choose action</h5>
-          <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-          <a href="{% url 'task_list' %}" class="btn btn-dark">Task List</a>
-          <a href="{% url 'add_task' %}" class="btn btn-dark">Add Task</a>
+          <h5 class="card-title">Add a Task</h5>
+          <p class="card-text">You can add a task right away and it will show up in your list.</p>
         </div>
+        <a href="{% url 'add_task' %}" class="btn btn-dark">Add Task</a>
       </div>
     </div>
     <div class="col">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">This is a short card.</p>
+            <h5 class="card-title">Your Task List</h5>
+            <p class="card-text">
+                {% if total_active == 1 %}
+                    You have {{ total_active }} active task. 
+                {% else %} 
+                    You have {{ total_active }} active tasks. 
+                {% endif %}
+                {% if total_completed == 1 %}
+                    You have completed {{ total_completed }} task.
+                {% else %}
+                    You have completed {{ total_completed }} tasks.
+                {% endif %}
+            </p>
         </div>
+        <a href="{% url 'task_list' %}" class="btn btn-dark">Go to Task List</a>
       </div>
     </div>
     <div class="col">
