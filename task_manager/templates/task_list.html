@@ -3,9 +3,18 @@
 {% block content %}
 <h3>Your Active Tasks</h3>
 <br/>
-<a href="{% url 'add_task' %}" class="btn btn-dark">Add Task</a>
-<a href="{% url 'completed_tasks' %}" class="btn btn-dark">View Completed Tasks</a>
-<a href="{% url 'home' %}" class="btn btn-dark">Back</a>
+<div class="d-flex justify-content-between">
+    <div>
+        <a href="{% url 'add_task' %}" class="btn btn-dark">Add Task</a>
+        <a href="{% url 'completed_tasks' %}" class="btn btn-dark">View Completed Tasks</a>
+        <a href="{% url 'home' %}" class="btn btn-dark">Back</a>
+    </div>
+    <form method="GET" action="{% url 'task_list' %}" class="d-flex ms-auto">
+        <input class="form-control me-2" type="search" name="q" placeholder="Search tasks" value="{{ request.GET.q }}">
+        <button class='btn btn-outline-success' type="submit">Search</button>
+    </form>
+</div>
+
 <br/>
 <br/>
 <div class="row">

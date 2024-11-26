@@ -5,12 +5,28 @@
     <h1>Edit Task</h1><br/>
     <form method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
-        <br/>
-        <button type="submit" class="btn btn-secondary">Save Changes</button>
+        {% for field in form %}
+            <div class="mb-3">
+                <div class="form-floating mb-3">
+                    {{ field }}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {% if field.errors %}
+                        <div class="text-danger">
+                            {% for error in field.errors %}
+                                <div class="text-danger small">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        <div class="d-flex justify-content-between mt-3">
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            <a href="{% url 'task_list' %}" class="btn btn-dark">Back</a>
+        </div>
     </form>
-    <br/>
-    <a href="{% url 'task_list' %}" class="btn btn-dark">Back</a>
 </div>
 
 {% endblock %}

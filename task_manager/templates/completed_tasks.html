@@ -3,8 +3,16 @@
 {% block content %}
 <h3>Your Completed Tasks</h3>
 <br/>
-<a href="{% url 'task_list' %}" class="btn btn-dark">Back</a>
-<br/>
+<div class="d-flex justify-content-between">
+    <div>
+        <a href="{% url 'task_list' %}" class="btn btn-dark">Back</a>
+    </div>
+
+    <form method="GET" action="{% url 'completed_tasks' %}" class="d-flex ms-auto">
+        <input class="form-control me-2" type="search" name="q" placeholder="Search tasks" value="{{ request.GET.q }}">
+        <button class='btn btn-outline-success' type="submit">Search</button>
+    </form>
+</div>
 <br/>
 <div class="row">
     {% if tasks %}

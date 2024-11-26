@@ -5,6 +5,8 @@ from .forms import RegisterUserForm, AddTaskForm
 from .models import Task
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.contrib.postgres.search import SearchVector
+
 
 
 def home(request):
@@ -90,7 +92,17 @@ def delete_task(request, pk):
         return redirect('login')
 
 @login_required
-def task_list(request): 
+def task_list(request):
+    query = request.GET.get('q', '')
+    tasks = Task.objects.filter(user=request.user, task_status=Task.Status.IN_PROGRESS)
+
+    # Adding search functionality
+    if query:
+        tasks = Task.objects.annotate(
+            search=SearchVector('task_name', 'task_description') # Search in both name and desc
+        ).filter(search=query, user=request.user, task_status=Task.Status.IN_PROGRESS) 
+    
+    # Adding the 'DONE' button to update the task status in the db
     if request.method == "POST":
         task_id = request.POST.get('id')
         try:
@@ -102,13 +114,23 @@ def task_list(request):
             messages.error(request, "Task not found or you don't have permission to update it.")
         return redirect('task_list')
     
+    # Adding a timezone variable to enable comparison in the template
     now = timezone.now()        
-    tasks = Task.objects.filter(user=request.user, task_status=Task.Status.IN_PROGRESS)
     tasks = tasks.order_by('due_date')
-    return render(request, 'task_list.html', {'tasks': tasks, 'now': now})
+    return render(request, 'task_list.html', {'tasks': tasks, 'now': now, 'query': query})
 
 @login_required
 def completed_tasks(request):
+    query = request.GET.get('q', '')
+    
+    tasks = Task.objects.filter(user=request.user, task_status=Task.Status.DONE)
+
+    # Adding search functionality
+    if query:
+        tasks = Task.objects.annotate(
+            search=SearchVector('task_name', 'task_description') # Search in both name and desc
+        ).filter(search=query, user=request.user, task_status=Task.Status.DONE)
+
     if request.method == "POST":
         task_id = request.POST.get('id')
         try:
@@ -120,6 +142,5 @@ def completed_tasks(request):
             messages.error(request, "Task not found or you don't have permission to update it.")
         return redirect('task_list')
     
-    tasks = Task.objects.filter(user=request.user, task_status=Task.Status.DONE)
     tasks = tasks.order_by('-due_date')
-    return render(request, 'completed_tasks.html', {'tasks': tasks})
+    return render(request, 'completed_tasks.html', {'tasks': tasks, 'query': query})
