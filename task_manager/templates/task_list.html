@@ -14,8 +14,16 @@
         <button class='btn btn-outline-success' type="submit">Search</button>
     </form>
 </div>
-
 <br/>
+<div class="d-flex justify-content-between">
+    <div>
+        <a href="?sort=task_priority" class="btn btn-success">Sort by Priority (Low to High)</a>
+        <a href="?sort=-task_priority" class="btn btn-success">Sort by Priority (High to Low)</a>
+    </div>
+    <div>
+        <a href="{% url 'task_list' %}" class="btn btn-success">Reset sorting</a>
+    </div>
+</div>
 <br/>
 <div class="row">
     {% if tasks %}
@@ -33,6 +41,15 @@
                         {% if task.due_date and task.due_date|date:"U" < now|date:"U" %}
                             <br/><b><span style="color: red;">Past Due!</span></b>
                         {% endif %}
+                    </p>
+                    <p class="card-text">
+                        Priority:
+                        <span {% if task.task_priority == "LOW" %}style="color: green;"
+                        {% elif task.task_priority == "MEDIUM" %}style="color: blue;"
+                        {% elif task.task_priority == "HIGH" %}style="color: red;"
+                        {% endif %}>
+                            {{ task.task_priority }}
+                        </span>
                     </p>
                     <div class="d-flex align-items-center gap-2">
                         <form method="POST" action="{% url 'task_list' %}">

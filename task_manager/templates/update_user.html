@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="col-md-6 offset-md-3">
+    <h1>Your Profile</h1>
+    <br />
+    <form method="POST" action="">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for field in form %}
+        <div class="mb-3">
+            <div class="form-floating mb-3">
+                {{ field }}
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field.help_text|safe }}
+                {% if field.errors %}
+                <div class="text-danger">
+                    {% for error in field.errors %}
+                    <small>{{ error }}</small>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <div>
+                <a href="{% url 'change_password' %}" class="btn btn-dark">Change Password</a>
+            </div>
+            <br />
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success">Update Profile</button>
+                <a href="{% url 'home' %}" class="btn btn-dark">Back</a>
+            </div>
+    </form>
+</div>
+{% endblock %}

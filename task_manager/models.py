@@ -9,6 +9,11 @@ class Task(models.Model):
         IN_PROGRESS = 'IN_PROGRESS', _('In Progress')
         DONE = 'DONE', _('Done')
     
+    class Priority(models.TextChoices):
+        LOW = 'LOW', _('Low')
+        MEDIUM = 'MEDIUM', _('Medium')
+        HIGH = 'HIGH', _('High')
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     task_name = models.CharField(max_length=100)
     task_description = models.TextField(blank=True, null=True)
@@ -18,6 +23,12 @@ class Task(models.Model):
         choices=Status,
         default=Status.IN_PROGRESS
         )
+    task_priority = models.CharField(
+        max_length=20,
+        choices = Priority,
+        default = Priority.LOW
+    )
     
     def __str__(self):
         return self.task_name
+    

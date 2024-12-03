@@ -3,19 +3,21 @@ from django.contrib.auth.models import User
 from django import forms
 from .models import Task
 
+
 class RegisterUserForm(UserCreationForm):
-    email = forms.EmailField(label='Email', widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Email Address'}))
+    email = forms.EmailField(label='Email', widget=forms.TextInput(
+        attrs={'class': 'form-control', 'placeholder': 'Email Address'}))
 
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2')
 
     def __init__(self, *args, **kwargs):
-        super(RegisterUserForm, self).__init__(*args, **kwargs) 
+        super(RegisterUserForm, self).__init__(*args, **kwargs)
         # Calling the __init__ method of base class. It allows
         # a child class to inherit and extend the functionality
         # of its parent class without having to rewrite code.
-            
+
         self.fields['username'].widget.attrs['class'] = 'form-control'
         self.fields['username'].widget.attrs['placeholder'] = 'User Name'
         self.fields['username'].label = 'Username'
@@ -26,9 +28,9 @@ class RegisterUserForm(UserCreationForm):
         self.fields['password1'].label = 'Password'
         self.fields['password1'].help_text = (
             '<ul class="form-text text-muted small">'
-    '<li>Your password must contain at least 8 characters.</li>'
-    '<li>Your password can’t be entirely numeric.</li>'
-    '</ul>'
+            '<li>Your password must contain at least 8 characters.</li>'
+            '<li>Your password can’t be entirely numeric.</li>'
+            '</ul>'
         )
 
         self.fields['password2'].widget.attrs['class'] = 'form-control'
@@ -36,26 +38,54 @@ class RegisterUserForm(UserCreationForm):
         self.fields['password2'].label = 'Repeat Password'
         self.fields['password2'].help_text = '<span class="form-text text-muted">Enter the same password as before, for verification.</span>'
 
+
+class UpdateUserForm(forms.ModelForm):
+    email = forms.EmailField(label='Email',  widget=forms.TextInput(
+        attrs={'class': 'form-control', 'placeholder': 'Email Address'}))
+
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+
+    def __init__(self, *args, **kwargs):
+        super(UpdateUserForm, self).__init__(*args, **kwargs)
+
+        self.fields['username'].widget.attrs['class'] = 'form-control'
+        self.fields['username'].widget.attrs['placeholder'] = 'User Name'
+        self.fields['username'].label = 'Username'
+        self.fields['username'].help_text = '<span class="form-text text-muted">150 characters or fewer. Letters, digits and @/./+/-/_ only.</span>'
+
 class AddTaskForm(forms.ModelForm):
     task_name = forms.CharField(label='Task Name',
                                 max_length=100,
-                                required=True, 
+                                required=True,
                                 widget=forms.TextInput(
-                                    attrs={'class':'form-control', 'placeholder':'Task Name'}
-                                    )
+                                    attrs={'class': 'form-control',
+                                           'placeholder': 'Task Name'}
+                                )
                                 )
     task_description = forms.CharField(label='Task Description',
                                        required=False,
                                        widget=forms.Textarea(
-                                            attrs={'class':'form-control', 'placeholder':'Task Description', 'style':"height: 200px"}
-                                            )
-                                        )
+                                           attrs={
+                                               'class': 'form-control', 'placeholder': 'Task Description', 'style': "height: 200px"}
+                                       )
+                                       )
     due_date = forms.DateTimeField(label='Due Date',
                                    required=False,
                                    widget=forms.DateTimeInput(
-                                       attrs={'class':'form-control', 'type': 'datetime-local'}
-                                       )
-                                    )
+                                       attrs={'class': 'form-control',
+                                              'type': 'datetime-local'}
+                                   )
+                                   )
+    task_priority = forms.ChoiceField(label='Priority',
+                                      required=False,
+                                      choices=Task.Priority.choices,
+                                      widget=forms.Select(
+                                          attrs={'class': 'form-control',
+                                                 'placeholder': 'Task Priority'}
+                                      )
+                                      )
 
     class Meta:
         model = Task

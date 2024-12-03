@@ -4,9 +4,9 @@
 
 {% if user.is_authenticated %}
 
-<h3>Welcome {{ user.username }}!</h3>
-<br/>
-<div class="row row-cols-1 row-cols-md-3 g-4">
+  <h3>Welcome {{ user.username }}!</h3>
+  <br />
+  <div class="row row-cols-1 row-cols-md-3 g-4">
     <div class="col">
       <div class="card h-100">
         <div class="card-body">
@@ -19,19 +19,19 @@
     <div class="col">
       <div class="card h-100">
         <div class="card-body">
-            <h5 class="card-title">Your Task List</h5>
-            <p class="card-text">
-                {% if total_active == 1 %}
-                    You have {{ total_active }} active task. 
-                {% else %} 
-                    You have {{ total_active }} active tasks. 
-                {% endif %}
-                {% if total_completed == 1 %}
-                    You have completed {{ total_completed }} task.
-                {% else %}
-                    You have completed {{ total_completed }} tasks.
-                {% endif %}
-            </p>
+          <h5 class="card-title">Your Task List</h5>
+          <p class="card-text">
+            {% if total_active == 1 %}
+            You have {{ total_active }} active task.
+            {% else %}
+            You have {{ total_active }} active tasks.
+            {% endif %}
+            {% if total_completed == 1 %}
+            You have completed {{ total_completed }} task.
+            {% else %}
+            You have completed {{ total_completed }} tasks.
+            {% endif %}
+          </p>
         </div>
         <a href="{% url 'task_list' %}" class="btn btn-dark">Go to Task List</a>
       </div>
@@ -39,18 +39,19 @@
     <div class="col">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content.</p>
+          <h5 class="card-title">Profile Settings</h5>
+          <p class="card-text">Update your username, email or password.</p>
         </div>
+        <a href="{% url 'update_user' %}" class="btn btn-dark">Update Profile</a>
       </div>
     </div>
 
-{% else %}
+  {% else %}
 
-<div class="col-md-6 offset-md-3">
-    <h4>Welcome Guest!</h4>
-    <br/>
-    <div class="card">
+    <div class="col-md-6 offset-md-3">
+      <h4>Welcome Guest!</h4>
+      <br />
+      <div class="card">
         <div class="card-body">
           <h5 class="card-title">Login Required</h5>
           <p class="card-text">Please register to create an account or log in to see your task dashboard.</p>
@@ -58,8 +59,8 @@
           <a href="{% url 'login' %}" class="btn btn-dark">Login</a>
         </div>
       </div>
-</div>
+    </div>
 
-{% endif %}
+  {% endif %}
 
-{% endblock %}
+  {% endblock %}

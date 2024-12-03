@@ -1,35 +1,45 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
-from .forms import RegisterUserForm, AddTaskForm
+from .forms import RegisterUserForm, UpdateUserForm, AddTaskForm
 from .models import Task
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib.postgres.search import SearchVector
+from django.db.models import Case, When, Value, IntegerField
+from django.urls import reverse_lazy
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.messages.views import SuccessMessageMixin
 
 
 
 def home(request):
-    total_active = Task.objects.filter(user=request.user, task_status=Task.Status.IN_PROGRESS).count()
-    total_completed = Task.objects.filter(user=request.user, task_status=Task.Status.DONE).count()
+    if request.user.is_authenticated is False:
+        return render(request, 'home.html', {})
+    
+    total_active = Task.objects.filter(
+        user=request.user, task_status=Task.Status.IN_PROGRESS).count()
+    total_completed = Task.objects.filter(
+        user=request.user, task_status=Task.Status.DONE).count()
+    
     return render(request, 'home.html', {'total_active': total_active, 'total_completed': total_completed})
-    
-    
-    
-def login_user(request): 
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        # Authenticate
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            messages.success(request, "You have been logged in!")
-            return redirect('home')
-        else:
-            messages.error(request, "Invalid username or password. Please try again.")
-            return render(request, 'login.html', {})
-    return render(request, 'login.html')
+
+
+def login_user(request):
+    if request.method != 'POST':
+        return render(request, 'login.html')
+
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(request, username=username, password=password)
+
+    if user is None:
+        messages.error(request, "Invalid username or password. Please try again.")
+        return render(request, 'login.html', {})
+
+    login(request, user)
+    messages.success(request, "You have been logged in!")
+    return redirect('home')
 
 
 def logout_user(request):
@@ -37,34 +47,62 @@ def logout_user(request):
     messages.success(request, 'You have logged out.')
     return redirect('home')
 
+
 def register_user(request):
+    if request.method != 'POST':
+        return render(request, 'register.html', {'form': RegisterUserForm()})
+
+    form = RegisterUserForm(request.POST)
+
+    if form.is_valid() is False:
+        return render(request, 'register.html', {'form': form})
+
+    form.save()
+    messages.success(request, 'You have successfully registered!')
+
+    return redirect('home')
+
+
+@login_required
+def update_user(request):
     if request.method == "POST":
-        form = RegisterUserForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'You have successfully registered!')
-            return redirect('home')
-    # If the user haven't submitted (POSTed) data yet,
-    # show them the registration form
-    else:
-        form = RegisterUserForm()
-    # If the form is not valid, re-render the form along with
-    # user input and error messages.
-    return render(request, 'register.html', {'form':form})
+        form = UpdateUserForm(request.POST, instance=request.user)
+        
+        if form.is_valid() is False:
+            return render(request, 'update_user.html', {'form': form})
+
+        form.save()
+        messages.success(request, 'Your profile has been updated!')
+        return redirect('update_user')
+    
+    
+    form = UpdateUserForm(instance=request.user)
+
+    return render(request, 'update_user.html', {'form': form})
+
+class ChangePasswordView(SuccessMessageMixin, PasswordChangeView):
+    template_name = 'change_password.html'
+    success_message = "Password changed successfully."
+    success_url = reverse_lazy('home')
 
 @login_required
 def add_task(request):
-    if request.method == "POST":
-        form = AddTaskForm(request.POST)
-        if form.is_valid():
-            task = form.save(commit=False)
-            task.user = request.user
-            task.save()
-            messages.success(request, "Task added successfully!")
-            return redirect('task_list')
-    else:
-        form = AddTaskForm()
-    return render(request, 'add_task.html', {'form':form})
+    if request.method != 'POST':
+        return render(request, 'add_task.html', {'form': AddTaskForm()})
+
+    form = AddTaskForm(request.POST)
+
+    if form.is_valid() == False:
+        return render(request, 'add_task.html', {'form': form})
+
+    task = form.save(commit=False)
+    task.user = request.user
+    task.save()
+
+    messages.success(request, "Task added successfully!")
+
+    return redirect('task_list')
+
 
 def edit_task(request, pk):
     if request.user.is_authenticated:
@@ -81,6 +119,7 @@ def edit_task(request, pk):
         messages.error('You must be logged in to do that.')
         return redirect('login')
 
+
 def delete_task(request, pk):
     if request.user.is_authenticated:
         delete_it = Task.objects.get(id=pk)
@@ -91,56 +130,80 @@ def delete_task(request, pk):
         messages.error('You must be logged in to do that.')
         return redirect('login')
 
+
 @login_required
 def task_list(request):
-    query = request.GET.get('q', '')
-    tasks = Task.objects.filter(user=request.user, task_status=Task.Status.IN_PROGRESS)
+    tasks = Task.objects.filter(
+        user=request.user, task_status=Task.Status.IN_PROGRESS).order_by('due_date')
 
     # Adding search functionality
+    query = request.GET.get('q', '')
     if query:
         tasks = Task.objects.annotate(
-            search=SearchVector('task_name', 'task_description') # Search in both name and desc
-        ).filter(search=query, user=request.user, task_status=Task.Status.IN_PROGRESS) 
-    
+            # Search in both name and desc
+            search=SearchVector('task_name', 'task_description')
+        ).filter(search=query, user=request.user, task_status=Task.Status.IN_PROGRESS)
+
+    # Adding sorting functionality
+    priority_order = Case(
+        When(task_priority='LOW', then=Value(1)),
+        When(task_priority='MEDIUM', then=Value(2)),
+        When(task_priority='HIGH', then=Value(3)),
+        output_field=IntegerField(),
+    )
+    tasks = tasks.annotate(priority_order=priority_order)
+    sort = request.GET.get('sort')
+    if sort == 'task_priority':
+        tasks = tasks.order_by('priority_order')
+    elif sort == '-task_priority':
+        tasks = tasks.order_by('-priority_order')
+
     # Adding the 'DONE' button to update the task status in the db
     if request.method == "POST":
         task_id = request.POST.get('id')
         try:
-            task = Task.objects.get(id=task_id, user=request.user)  # Filter by user
+            task = Task.objects.get(
+                id=task_id, user=request.user)  # Filter by user
             task.task_status = Task.Status.DONE  # Mark as Done
             task.save()
-            messages.success(request, f"Task '{task.task_name}' marked as Done!")
+            messages.success(request, f'Task "{task.task_name}" marked as Done!')
         except Task.DoesNotExist:
-            messages.error(request, "Task not found or you don't have permission to update it.")
+            messages.error(
+                request, "Task not found or you don't have permission to update it.")
         return redirect('task_list')
-    
+
     # Adding a timezone variable to enable comparison in the template
-    now = timezone.now()        
-    tasks = tasks.order_by('due_date')
-    return render(request, 'task_list.html', {'tasks': tasks, 'now': now, 'query': query})
+    now = timezone.now()
+    # tasks = tasks.order_by('due_date')
+    return render(request, 'task_list.html', {'tasks': tasks, 'now': now, 'query': query, 'sort': sort})
+
 
 @login_required
 def completed_tasks(request):
     query = request.GET.get('q', '')
-    
-    tasks = Task.objects.filter(user=request.user, task_status=Task.Status.DONE)
+
+    tasks = Task.objects.filter(
+        user=request.user, task_status=Task.Status.DONE)
 
     # Adding search functionality
     if query:
         tasks = Task.objects.annotate(
-            search=SearchVector('task_name', 'task_description') # Search in both name and desc
+            # Search in both name and desc
+            search=SearchVector('task_name', 'task_description')
         ).filter(search=query, user=request.user, task_status=Task.Status.DONE)
 
     if request.method == "POST":
         task_id = request.POST.get('id')
         try:
-            task = Task.objects.get(id=task_id, user=request.user)  # Filter by user
+            task = Task.objects.get(
+                id=task_id, user=request.user)  # Filter by user
             task.task_status = Task.Status.IN_PROGRESS  # Mark as Done
             task.save()
-            messages.success(request, f"Task '{task.task_name}' moved back to the active list!")
+            messages.success(request, f'Task "{task.task_name}" moved back to the active list!')
         except Task.DoesNotExist:
-            messages.error(request, "Task not found or you don't have permission to update it.")
+            messages.error(
+                request, "Task not found or you don't have permission to update it.")
         return redirect('task_list')
-    
+
     tasks = tasks.order_by('-due_date')
     return render(request, 'completed_tasks.html', {'tasks': tasks, 'query': query})
