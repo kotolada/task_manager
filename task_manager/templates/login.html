@@ -3,16 +3,8 @@
 {% block content %}
 
 <div class="col-md-6 offset-md-3">
-    <!-- {% if messages %}
-        <div class="alert alert-info" role="alert">
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
-        </div>
-    {% endif %} -->
-    <br/>
-    <h1>Login</h1>
-    <br/>
+    <h3>Login</h3>
+    <br />
     <form method="POST" action="{% url 'login' %}">
         {% csrf_token %}
         <div class="form-floating mb-3">
@@ -20,10 +12,11 @@
             <label for="floatingInput">Username</label>
         </div>
         <div class="form-floating mb-3">
-            <input type="password" class="form-control" id="floatingInput" name="password" placeholder="Password" required>
+            <input type="password" class="form-control" id="floatingInput" name="password" placeholder="Password"
+                required>
             <label for="floatingInput">Password</label>
         </div>
-        <br/>
+        <br />
         <button type="submit" class="btn btn-dark">Login</button>
     </form>
 </div>
